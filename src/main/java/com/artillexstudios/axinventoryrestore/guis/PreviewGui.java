@@ -70,12 +70,12 @@ public class PreviewGui {
             final DiscordAddon discordAddon = AxInventoryRestore.getDiscordAddon();
             if (discordAddon != null) starter = 45;
 
-            previewGui.setItem(starter, new GuiItem(new ItemBuilder(MESSAGES.getSection("gui-items.back")).get(), event -> {
+            previewGui.setItem(starter, new GuiItem(ItemBuilder.create(MESSAGES.getSection("gui-items.back")).get(), event -> {
                 lastGui.open(viewer, pageNum);
                 event.setCancelled(true);
             }));
 
-            previewGui.setItem(starter + 2, new GuiItem(new ItemBuilder(MESSAGES.getSection("guis.previewgui.teleport"), Map.of("%location%", LocationUtils.serializeLocationReadable(backupData.getLocation()))).get(), event -> {
+            previewGui.setItem(starter + 2, new GuiItem(ItemBuilder.create(MESSAGES.getSection("guis.previewgui.teleport"), Map.of("%location%", LocationUtils.serializeLocationReadable(backupData.getLocation()))).get(), event -> {
                 event.setCancelled(true);
 
                 if (!PermissionUtils.hasPermission(viewer, "teleport")) {
@@ -88,7 +88,7 @@ public class PreviewGui {
             }));
 
             boolean isEnder = backupData.getReason().equals("ENDER_CHEST");
-            previewGui.setItem(starter + 4, new GuiItem(new ItemBuilder(MESSAGES.getSection("guis.previewgui.quick-restore" + (isEnder ? "-ender-chest" : ""))).get(), event -> {
+            previewGui.setItem(starter + 4, new GuiItem(ItemBuilder.create(MESSAGES.getSection("guis.previewgui.quick-restore" + (isEnder ? "-ender-chest" : ""))).get(), event -> {
                 event.setCancelled(true);
 
                 if (!PermissionUtils.hasPermission(viewer, "restore")) {
@@ -118,7 +118,7 @@ public class PreviewGui {
 
             final int starterFinal = starter;
             backupData.getInShulkers(viewer.getName()).thenAccept(item -> {
-                previewGui.setItem(starterFinal + 6, new GuiItem(new ItemBuilder(MESSAGES.getSection("guis.previewgui.export-as-shulker"), Map.of("%shulker-amount%", Integer.toString(item.size()))).get(), event -> {
+                previewGui.setItem(starterFinal + 6, new GuiItem(ItemBuilder.create(MESSAGES.getSection("guis.previewgui.export-as-shulker"), Map.of("%shulker-amount%", Integer.toString(item.size()))).get(), event -> {
                     event.setCancelled(true);
 
                     if (!PermissionUtils.hasPermission(viewer, "export")) {

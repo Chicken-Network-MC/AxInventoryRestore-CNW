@@ -121,7 +121,7 @@ public class BackupData {
                 replacements.put("%staff%", restorerName);
                 replacements.put("%player-uuid%", player.toString());
 
-                final ItemStack shulkerIt = new ItemBuilder(MESSAGES.getSection("restored-shulker"), replacements).get();
+                final ItemStack shulkerIt = ItemBuilder.create(MESSAGES.getSection("restored-shulker"), replacements).get();
                 final BlockStateMeta im = (BlockStateMeta) shulkerIt.getItemMeta();
                 final ShulkerBox shulker = (ShulkerBox) im.getBlockState();
 

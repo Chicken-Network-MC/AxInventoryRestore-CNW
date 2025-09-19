@@ -60,7 +60,7 @@ public class CategoryGui {
             replacements.put("%location%", LocationUtils.serializeLocationReadable(backupData.getLocation()));
             replacements.put("%cause%", backupData.getCause() == null ? "---" : backupData.getCause());
 
-            final ItemStack it = new ItemBuilder(MESSAGES.getSection("guis.categorygui.item"), replacements).get();
+            final ItemStack it = ItemBuilder.create(MESSAGES.getSection("guis.categorygui.item"), replacements).get();
             it.setAmount(n);
 
             categoryGui.addItem(new GuiItem(it, event -> {
@@ -76,13 +76,13 @@ public class CategoryGui {
         categoryGui.update();
 
         // Previous item
-        categoryGui.setItem(rows, 3, new GuiItem(new ItemBuilder(MESSAGES.getSection("gui-items.previous-page")).get(), event2 -> categoryGui.previous()));
+        categoryGui.setItem(rows, 3, new GuiItem(ItemBuilder.create(MESSAGES.getSection("gui-items.previous-page")).get(), event2 -> categoryGui.previous()));
         // Next item
-        categoryGui.setItem(rows, 7, new GuiItem(new ItemBuilder(MESSAGES.getSection("gui-items.next-page")).get(), event2 -> categoryGui.next()));
+        categoryGui.setItem(rows, 7, new GuiItem(ItemBuilder.create(MESSAGES.getSection("gui-items.next-page")).get(), event2 -> categoryGui.next()));
 
         categoryGui.setDefaultClickAction(event -> event.setCancelled(true));
 
-        categoryGui.setItem(rows, 5, new GuiItem(new ItemBuilder(MESSAGES.getSection("gui-items.back")).get(), event2 -> {
+        categoryGui.setItem(rows, 5, new GuiItem(ItemBuilder.create(MESSAGES.getSection("gui-items.back")).get(), event2 -> {
             lastGui.open(viewer, pageNum);
         }));
 

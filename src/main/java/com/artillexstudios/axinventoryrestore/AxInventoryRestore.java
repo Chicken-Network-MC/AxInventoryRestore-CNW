@@ -43,7 +43,7 @@ public final class AxInventoryRestore extends AxPlugin {
     public static Config DISCORD;
     public static MessageUtils MESSAGEUTILS;
     private static AxPlugin instance;
-    private static PriorityThreadedQueue<Runnable> threadedQueue;
+    private static PriorityThreadedQueue threadedQueue;
     private static Database database;
     private static DiscordAddon discordAddon = null;
     private static AxMetrics metrics;
@@ -61,7 +61,7 @@ public final class AxInventoryRestore extends AxPlugin {
         return database;
     }
 
-    public static PriorityThreadedQueue<Runnable> getThreadedQueue() {
+    public static PriorityThreadedQueue getThreadedQueue() {
         return threadedQueue;
     }
 
@@ -91,7 +91,7 @@ public final class AxInventoryRestore extends AxPlugin {
         DISCORD = new Config(new File(getDataFolder(), "discord.yml"), getResource("discord.yml"), GeneralSettings.builder().setUseDefaults(false).build(), LoaderSettings.builder().setAutoUpdate(true).build(), DumperSettings.DEFAULT, UpdaterSettings.builder().setKeepAll(true).setVersioning(new BasicVersioning("version")).build());
 
         WebHooks.reload();
-        threadedQueue = new PriorityThreadedQueue<>("AxInventoryRestore-Datastore-thread");
+        threadedQueue = new PriorityThreadedQueue();
 
         MESSAGEUTILS = new MessageUtils(MESSAGES.getBackingDocument(), "prefix", CONFIG.getBackingDocument());
 
@@ -139,7 +139,6 @@ public final class AxInventoryRestore extends AxPlugin {
     public void disable() {
         if (metrics != null) metrics.cancel();
         AutoBackupScheduler.stop();
-        threadedQueue.stop();
         database.disable();
     }
 

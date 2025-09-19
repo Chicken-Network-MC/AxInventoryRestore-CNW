@@ -92,7 +92,7 @@ public class DiscordAddon extends ListenerAdapter {
     }
 
     public ItemStack getRequestItem() {
-        return new ItemBuilder(DISCORD.getSection("request-restore")).get();
+        return ItemBuilder.create(DISCORD.getSection("request-restore")).get();
     }
 
     @Override
