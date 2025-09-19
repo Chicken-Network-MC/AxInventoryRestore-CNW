@@ -476,22 +476,13 @@ public abstract class Base implements Database {
 
     @Override
     public void join(@NotNull Player player) {
-        final String sql = "INSERT INTO axir_users(uuid, name) VALUES (?,?);";
-        try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        final String sql = "INSERT INTO axir_users(uuid, name) VALUES (?,?) ON DUPLICATE KEY UPDATE name = VALUES(name);";
+        try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, player.getUniqueId().toString());
             stmt.setString(2, player.getName());
             stmt.executeUpdate();
-
-        } catch (SQLException ex) {
-            final String sql2 = "UPDATE axir_users SET name = ? WHERE uuid = ?;";
-            try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(sql2)) {
-                stmt.setString(1, player.getName());
-                stmt.setString(2, player.getUniqueId().toString());
-                stmt.executeUpdate();
-
-            } catch (SQLException exception) {
-                log.error("An unexpected error occurred while updating the name of {}!", player.getName(), exception);
-            }
+        } catch (SQLException exception) {
+            log.error("An unexpected error occurred while updating the name of {}!", player.getName(), exception);
         }
     }
 
