@@ -476,7 +476,7 @@ public abstract class Base implements Database {
 
     @Override
     public void join(@NotNull Player player) {
-        final String sql = "INSERT INTO axir_users(uuid, name) VALUES (?,?) ON DUPLICATE KEY UPDATE name = VALUES(name);";
+        final String sql = "INSERT INTO axir_users(uuid, name) VALUES (?,?) ON DUPLICATE KEY UPDATE name = VALUES(name), uuid = VALUES(uuid);";
         try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, player.getUniqueId().toString());
             stmt.setString(2, player.getName());
