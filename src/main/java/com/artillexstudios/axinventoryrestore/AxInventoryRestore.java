@@ -91,7 +91,7 @@ public final class AxInventoryRestore extends AxPlugin {
         DISCORD = new Config(new File(getDataFolder(), "discord.yml"), getResource("discord.yml"), GeneralSettings.builder().setUseDefaults(false).build(), LoaderSettings.builder().setAutoUpdate(true).build(), DumperSettings.DEFAULT, UpdaterSettings.builder().setKeepAll(true).setVersioning(new BasicVersioning("version")).build());
 
         WebHooks.reload();
-        threadedQueue = new PriorityThreadedQueue();
+        threadedQueue = new PriorityThreadedQueue<>("AxInventoryRestore-Datastore-thread");
 
         MESSAGEUTILS = new MessageUtils(MESSAGES.getBackingDocument(), "prefix", CONFIG.getBackingDocument());
 
