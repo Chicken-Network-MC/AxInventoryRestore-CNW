@@ -7,7 +7,6 @@ import com.artillexstudios.axinventoryrestore.events.WebHooks;
 import com.artillexstudios.axinventoryrestore.guis.MainGui;
 import com.artillexstudios.axinventoryrestore.hooks.HookManager;
 import com.artillexstudios.axinventoryrestore.queue.Priority;
-import com.artillexstudios.axinventoryrestore.schedulers.AutoBackupScheduler;
 import com.artillexstudios.axinventoryrestore.utils.BackupLimiter;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
@@ -85,7 +84,6 @@ public class Commands {
         Bukkit.getConsoleSender().sendMessage(StringUtils.formatToString("&#00aaff╠ &#00FF00Reloaded &fdiscord.yml&#00FF00!"));
         WebHooks.reload();
 
-        AutoBackupScheduler.start();
         HookManager.reloadHooks();
 
         Bukkit.getConsoleSender().sendMessage(StringUtils.formatToString("&#00aaff╚ &#00FF00Successful reload!"));
