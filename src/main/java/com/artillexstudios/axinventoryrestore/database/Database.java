@@ -8,6 +8,7 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.sql.Connection;
 import java.util.UUID;
 
 public interface Database {
@@ -32,7 +33,7 @@ public interface Database {
 
     void saveInventory(ItemStack[] items, @NotNull Player player, @NotNull String reason, @Nullable String cause);
 
-    int storeItems(byte[] items);
+    int storeItems(Connection conn, byte[] items);
 
     int storeWorld(String world);
 

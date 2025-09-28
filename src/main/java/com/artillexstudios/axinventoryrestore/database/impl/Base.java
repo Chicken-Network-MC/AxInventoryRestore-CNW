@@ -13,6 +13,7 @@ import com.artillexstudios.axinventoryrestore.database.Converter2;
 import com.artillexstudios.axinventoryrestore.database.Converter3;
 import com.artillexstudios.axinventoryrestore.database.Database;
 import com.artillexstudios.axinventoryrestore.events.AxirEvents;
+import com.artillexstudios.axinventoryrestore.models.InventorySaveModel;
 import com.artillexstudios.axinventoryrestore.utils.SQLUtils;
 import com.google.common.collect.HashBiMap;
 import org.bukkit.Bukkit;
@@ -50,6 +51,7 @@ public abstract class Base implements Database {
     private final HashBiMap<Integer, String> reasonCache = HashBiMap.create();
     private final HashBiMap<Integer, String> worldCache = HashBiMap.create();
     private final AtomicBoolean cleaning = new AtomicBoolean(false);
+    private final List<InventorySaveModel> saveModels = Collections.synchronizedList(new ArrayList<>());
     private long nextClear = 0;
 
     public abstract Connection getConnection();
@@ -277,76 +279,86 @@ public abstract class Base implements Database {
 
     @Override
     public void saveInventory(ItemStack[] items, @NotNull Player player, @NotNull String reason, @Nullable String cause) {
-        if (shutdown) {
-            // Don't try to save if the database is already closed
-            return;
-        }
-
-        if (AxirEvents.callInventoryBackupEvent(player, reason, cause)) {
-            return;
-        }
+        if (shutdown) return;
+        //if (AxirEvents.callInventoryBackupEvent(player, reason, cause)) return;
 
         boolean isEmpty = true;
-
         for (ItemStack it : items) {
             if (it == null || it.getType().isAir()) continue;
             isEmpty = false;
             break;
         }
+        if (isEmpty) return;
 
-        if (isEmpty) {
-            return;
+        Location location = player.getLocation();
+        InventorySaveModel saveModel = new InventorySaveModel(player.getUniqueId(), items, reason, cause,
+                                                              location.getWorld().getName(), location.getBlockX(),
+                                                              location.getBlockY(), location.getBlockZ());
+
+        synchronized (saveModels) {
+            saveModels.add(saveModel);
         }
 
+        if (saveModels.size() > 10) save();
+    }
+
+    public void save() {
         final String sql = "INSERT INTO axir_backups(userId, reasonId, worldId, x, y, z, inventoryId, time, cause) VALUES (?,?,?,?,?,?,?,?,?);";
-        final Location location = player.getLocation();
 
         AxInventoryRestore.getThreadedQueue().submit(() -> {
-            byte[] inventory = Serializers.ITEM_ARRAY.serialize(items);
-
-            final Integer userId = getUserId(player.getUniqueId());
-            if (userId == null) {
-                return;
+            List<InventorySaveModel> cloneList;
+            synchronized (saveModels) {
+                cloneList = new ArrayList<>(saveModels);
+                saveModels.clear();
             }
 
-            // It is most likely that the inventory is the same for the same user in the last backup
-            // Sadly this costs more storage space, but it should be a lot faster
-            Integer storedId = null;
-            Integer backupId = getLastBackupInventoryId(userId);
-            if (backupId != null) {
-                byte[] bytes = getBytesFromBackup(backupId);
-                if (bytes != null) {
-                    if (Arrays.equals(inventory, bytes)) {
-                        storedId = backupId;
-                    }
+            cloneList.forEach(saveModel -> {
+                byte[] inventory = Serializers.ITEM_ARRAY.serialize(saveModel.getItems());
+
+                final Integer userId = getUserId(saveModel.getPlayer());
+                if (userId == null) {
+                    return;
                 }
-            }
 
-            if (storedId == null) {
-                storedId = storeItems(inventory);
-            }
+                try (Connection conn = getConnection()) {
+                    Integer storedId = null;
+                    Integer backupId = getLastBackupInventoryId(conn, userId);
+                    if (backupId != null) {
+                        byte[] bytes = getBytesFromBackup(conn, backupId);
+                        if (bytes != null) {
+                            if (Arrays.equals(inventory, bytes)) {
+                                storedId = backupId;
+                            }
+                        }
+                    }
 
-            try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
-                stmt.setInt(1, userId);
-                stmt.setInt(2, getReasonId(reason));
-                stmt.setInt(3, storeWorld(location.getWorld().getName()));
-                stmt.setInt(4, location.getBlockX());
-                stmt.setInt(5, location.getBlockY());
-                stmt.setInt(6, location.getBlockZ());
-                stmt.setInt(7, storedId);
-                stmt.setLong(8, System.currentTimeMillis());
-                stmt.setString(9, cause);
-                stmt.executeUpdate();
-            } catch (Exception exception) {
-                log.error("An unexpected error occurred while saving inventory of user {}!", player.getName(), exception);
-            }
+                    if (storedId == null) {
+                        storedId = storeItems(conn, inventory);
+                    }
+
+                    try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                        stmt.setInt(1, userId);
+                        stmt.setInt(2, getReasonId(saveModel.getReason()));
+                        stmt.setInt(3, storeWorld(saveModel.getWorldName()));
+                        stmt.setInt(4, saveModel.getX());
+                        stmt.setInt(5, saveModel.getY());
+                        stmt.setInt(6, saveModel.getZ());
+                        stmt.setInt(7, storedId);
+                        stmt.setLong(8, System.currentTimeMillis());
+                        stmt.setString(9, saveModel.getCause());
+                        stmt.executeUpdate();
+                    }
+                } catch (Exception exception) {
+                    log.error("An unexpected error occurred while saving inventory of user {}!", saveModel.getPlayer(), exception);
+                }
+            });
         });
     }
 
     @Override
-    public int storeItems(byte[] items) {
+    public int storeItems(Connection conn, byte[] items) {
         final String sql = "INSERT INTO axir_storage(inventory) VALUES (?);";
-        try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setBytes(1, items);
             stmt.executeUpdate();
 
@@ -459,8 +471,8 @@ public abstract class Base implements Database {
         return new Backup(backups);
     }
 
-    public Integer getLastBackupInventoryId(int userId) {
-        try (Connection connection = getConnection(); PreparedStatement statement = connection.prepareStatement("SELECT inventoryId FROM axir_backups WHERE userId = ? ORDER BY id DESC LIMIT 1;")) {
+    public Integer getLastBackupInventoryId(Connection connection, int userId) {
+        try (PreparedStatement statement = connection.prepareStatement("SELECT inventoryId FROM axir_backups WHERE userId = ? ORDER BY id DESC LIMIT 1;")) {
             statement.setInt(1, userId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
@@ -578,9 +590,9 @@ public abstract class Base implements Database {
         return null;
     }
 
-    public byte[] getBytesFromBackup(int backupId) {
+    public byte[] getBytesFromBackup(Connection conn, int backupId) {
         final String sql = "SELECT inventory FROM axir_storage WHERE id = ? LIMIT 1;";
-        try (Connection conn = getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, backupId);
 
             try (ResultSet rs = stmt.executeQuery()) {
