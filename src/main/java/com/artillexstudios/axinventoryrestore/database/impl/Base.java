@@ -1,6 +1,5 @@
 package com.artillexstudios.axinventoryrestore.database.impl;
 
-import com.artillexstudios.axapi.nms.wrapper.ServerWrapper;
 import com.artillexstudios.axapi.nms.wrapper.WrapperRegistry;
 import com.artillexstudios.axapi.scheduler.Scheduler;
 import com.artillexstudios.axapi.serializers.Serializers;
@@ -12,7 +11,6 @@ import com.artillexstudios.axinventoryrestore.backups.BackupData;
 import com.artillexstudios.axinventoryrestore.database.Converter2;
 import com.artillexstudios.axinventoryrestore.database.Converter3;
 import com.artillexstudios.axinventoryrestore.database.Database;
-import com.artillexstudios.axinventoryrestore.events.AxirEvents;
 import com.artillexstudios.axinventoryrestore.models.InventorySaveModel;
 import com.artillexstudios.axinventoryrestore.utils.SQLUtils;
 import com.google.common.collect.HashBiMap;
@@ -500,11 +498,7 @@ public abstract class Base implements Database {
 
     @Override
     public UUID getUUID(@NotNull String name) {
-        ServerWrapper serverWrapper = WrapperRegistry.SERVER.map(null);
-        OfflinePlayer offlinePlayer = serverWrapper.getCachedOfflinePlayer(name);
-        if (offlinePlayer == null) {
-            offlinePlayer = Bukkit.getOfflinePlayer(name);
-        }
+        OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(name);
 
         if (offlinePlayer.getName() == null) {
             String ex = "SELECT uuid FROM axir_users WHERE name = ? LIMIT 1;";
