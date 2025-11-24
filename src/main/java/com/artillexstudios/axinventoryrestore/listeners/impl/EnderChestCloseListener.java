@@ -28,7 +28,7 @@ public class EnderChestCloseListener implements Listener {
         if (cooldown.hasCooldown(uuid)) return;
 
 
-        AxInventoryRestore.getDB().saveInventory(event.getPlayer().getEnderChest().getStorageContents(), (Player) event.getPlayer(), "ENDER_CHEST", null);
+        AxInventoryRestore.getDatabase().saveInventory(event.getPlayer().getEnderChest().getStorageContents(), (Player) event.getPlayer(), "ENDER_CHEST", null);
         BackupLimiter.tryLimit(event.getPlayer().getUniqueId(), "ender-chest", "ENDER_CHEST");
         cooldown.addCooldown(uuid, 1000 * 60 * 5);
     }

@@ -108,13 +108,13 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
-            <version>1.20.2-R0.1-SNAPSHOT</version>
+            <version>1.21.10-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.artillexstudios.axapi</groupId>
-            <artifactId>axapi</artifactId>
-            <version>1.4.802</version>
+            <artifactId>axapi-cnw</artifactId>
+            <version>1.4.749</version>
             <scope>compile</scope>
             <classifier>all</classifier>
         </dependency>
