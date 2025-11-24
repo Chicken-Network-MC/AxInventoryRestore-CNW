@@ -113,8 +113,8 @@
         </dependency>
         <dependency>
             <groupId>com.artillexstudios.axapi</groupId>
-            <artifactId>axapi-cnw</artifactId>
-            <version>1.4.749</version>
+            <artifactId>axapi</artifactId>
+            <version>1.4.802</version>
             <scope>compile</scope>
             <classifier>all</classifier>
         </dependency>
