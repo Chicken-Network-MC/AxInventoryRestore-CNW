@@ -3,6 +3,7 @@ package com.artillexstudios.axinventoryrestore.guis;
 import com.artillexstudios.axapi.utils.ItemBuilder;
 import com.artillexstudios.axapi.utils.StringUtils;
 import com.artillexstudios.axinventoryrestore.backups.BackupData;
+import com.artillexstudios.axinventoryrestore.utils.DateUtils;
 import com.artillexstudios.axinventoryrestore.utils.LocationUtils;
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.GuiItem;
@@ -11,8 +12,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,7 +45,7 @@ public class CategoryGui {
                 .create();
     }
 
-    public void openCategoryGui() {
+    public void open() {
         categoryGui.clearPageItems();
 
         final CategoryGui cGui = this;
@@ -54,9 +53,7 @@ public class CategoryGui {
         for (BackupData backupData : backupDataList) {
             final Map<String, String> replacements = new HashMap<>();
 
-            final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            final Date resultdate = new Date(backupData.getDate());
-            replacements.put("%date%", sdf.format(resultdate));
+            replacements.put("%date%", DateUtils.formatDate(backupData.getDate()));
             replacements.put("%location%", LocationUtils.serializeLocationReadable(backupData.getLocation()));
             replacements.put("%cause%", backupData.getCause() == null ? "---" : backupData.getCause());
 
@@ -64,7 +61,7 @@ public class CategoryGui {
             it.setAmount(n);
 
             categoryGui.addItem(new GuiItem(it, event -> {
-                new PreviewGui(cGui, backupData, categoryGui, categoryGui.getCurrentPageNum()).openPreviewGui();
+                new PreviewGui(cGui, backupData, categoryGui, categoryGui.getCurrentPageNum()).open();
             }));
 
             n++;

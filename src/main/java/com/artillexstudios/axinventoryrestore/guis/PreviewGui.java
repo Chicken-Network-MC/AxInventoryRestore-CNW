@@ -3,6 +3,7 @@ package com.artillexstudios.axinventoryrestore.guis;
 import com.artillexstudios.axapi.utils.ItemBuilder;
 import com.artillexstudios.axapi.utils.PaperUtils;
 import com.artillexstudios.axapi.utils.StringUtils;
+import com.artillexstudios.axapi.utils.logging.LogUtils;
 import com.artillexstudios.axinventoryrestore.AxInventoryRestore;
 import com.artillexstudios.axinventoryrestore.backups.BackupData;
 import com.artillexstudios.axinventoryrestore.discord.DiscordAddon;
@@ -47,8 +48,11 @@ public class PreviewGui {
                 .create();
     }
 
-    public void openPreviewGui() {
+    public void open() {
+        long time = System.currentTimeMillis();
+        if (AxInventoryRestore.isDebugMode()) LogUtils.debug("Opening backup preview for {}", viewer.getName());
         backupData.getItems().thenAccept(items -> {
+            if (AxInventoryRestore.isDebugMode()) LogUtils.debug("Preview data loaded for {} in {}ms", viewer.getName(), System.currentTimeMillis() - time);
             int n = -1;
 
             for (ItemStack it : items) {
@@ -152,5 +156,6 @@ public class PreviewGui {
         });
 
         previewGui.open(viewer);
+        if (AxInventoryRestore.isDebugMode()) LogUtils.debug("Preview gui opened for {} in {}ms", viewer.getName(), System.currentTimeMillis() - time);
     }
 }
